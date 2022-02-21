@@ -144,7 +144,7 @@ if load_type == "triangle":
     ))
 
 numerical_results_dir = os.path.join(
-    os.getcwd(), "results_RK5", f"dt_{dt}", f"{load_type}"
+    os.getcwd(), "results_RK52", f"dt_{dt}", f"{load_type}"
 )
 os.makedirs(numerical_results_dir, exist_ok=True)
 
@@ -170,8 +170,8 @@ if plot_stretches:
 
 # material parameters:
 kap_by_mu = 1e3
-mu1 = (0.5)
-mu2 = (0.5)
+mu1 = (0.5) * 0.01
+mu2 = (0.5) * 0.01
 alph1 = (1.)
 alph2 = (1.)
 m1 = (0.5)
@@ -182,7 +182,7 @@ K1 = (3507 * 10**3)
 K2 = (10**(-6))
 bta1 = (1.852)
 bta2 = (0.26)
-eta0 = (1.)
+eta0 = (1e2)
 etaInf = (0.1)  # 0.1
 
 # time stepping

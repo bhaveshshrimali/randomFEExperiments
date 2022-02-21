@@ -19,8 +19,8 @@ plt.rc("text", usetex=True)
 plt.style.use("myPlots")
 plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 # material parameters
-mu, lmbda = 1., 1.e3
-nu, eta = 1., 1.
+mu, lmbda = 0.01, 1.e3
+nu, eta = 1., 1e2
 
 def doubleInner(A, B):
     return np.einsum("ij...,ij...", A, B)
@@ -221,31 +221,31 @@ I = np.hstack((
     basis["u"].N + np.arange(basis["p"].N)
 ))
 
-@LinearForm(nthreads=3)
+@LinearForm(nthreads=2)
 def a1(v, w):
     return np.einsum("ij...,ij...", F1(w), grad(v))
 
-@LinearForm(nthreads=3)
+@LinearForm(nthreads=2)
 def a2(v, w):
     return F2(w) * v
 
-@BilinearForm(nthreads=3)
+@BilinearForm(nthreads=2)
 def b11(u, v, w):
     return np.einsum("ijkl...,ij...,kl...", A11(w), grad(u), grad(v))
 
-@BilinearForm(nthreads=3)
+@BilinearForm(nthreads=2)
 def b12(u, v, w):
     return np.einsum("ij...,ij...", A12(w), grad(v)) * u
 
-@BilinearForm(nthreads=3)
+@BilinearForm(nthreads=2)
 def b22(u, v, w):
     return A22(w) * u * v
 
-@Functional(nthreads=3)
+@Functional(nthreads=2)
 def vol(w):
     return volume(w)
 
-@Functional(nthreads=3)
+@Functional(nthreads=2)
 def stress(w):
     return sPiola33(w)
 
@@ -269,7 +269,7 @@ stretchVals = np.hstack((
 meshioPoints = mesh.p.T
 meshioCells = [("tetra", mesh.t.T)]
 # meshioCells = [("tetra", mesh.t.T)]
-results_dir = os.path.join(os.getcwd(), "resultsViscoTimeSteps_no_mu")
+results_dir = os.path.join(os.getcwd(), "resultsViscoTimeSteps_no_mu2")
 os.makedirs(results_dir, exist_ok=True)
 filename = os.path.join(results_dir, f"disps_{ldot}.xdmf")
 
