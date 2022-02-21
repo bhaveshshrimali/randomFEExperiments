@@ -19,7 +19,7 @@ plt.rc("text", usetex=True)
 plt.style.use("myPlots")
 plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
 # material parameters
-mu, lmbda = 0.01, 1.e3
+mu, lmbda = 1., 1.e3
 nu, eta = 1., 1.
 
 def doubleInner(A, B):
@@ -187,11 +187,11 @@ elems_proj = {
     "p": ElementTetP1()
 }
 basis = {
-    field: Basis(mesh, e, intorder=3)
+    field: Basis(mesh, e, intorder=4)
     for field, e in elems.items()
 }
 project_basis = {
-    field: Basis(mesh, e, intorder=3)
+    field: Basis(mesh, e, intorder=4)
     for field, e in elems_proj.items()
 }
 
@@ -221,46 +221,49 @@ I = np.hstack((
     basis["u"].N + np.arange(basis["p"].N)
 ))
 
-@LinearForm
+@LinearForm(nthreads=3)
 def a1(v, w):
     return np.einsum("ij...,ij...", F1(w), grad(v))
 
-@LinearForm
+@LinearForm(nthreads=3)
 def a2(v, w):
     return F2(w) * v
 
-@BilinearForm
+@BilinearForm(nthreads=3)
 def b11(u, v, w):
     return np.einsum("ijkl...,ij...,kl...", A11(w), grad(u), grad(v))
 
-@BilinearForm
+@BilinearForm(nthreads=3)
 def b12(u, v, w):
     return np.einsum("ij...,ij...", A12(w), grad(v)) * u
 
-@BilinearForm
+@BilinearForm(nthreads=3)
 def b22(u, v, w):
     return A22(w) * u * v
 
-@Functional
+@Functional(nthreads=3)
 def vol(w):
     return volume(w)
 
-@Functional
+@Functional(nthreads=3)
 def stress(w):
     return sPiola33(w)
 
 
-ldot = 1.0
+ldot = 1.
 dt = 0.05
 final_stretch = 2.
-Tf = 2. * final_stretch/ldot
+Tf = 2. * (final_stretch - 1.)/ldot
 num_steps = Tf/dt
 timevals = np.linspace(0., Tf, int(num_steps + 1))
-t1 = timevals[timevals <= Tf/2.]
-t2 = timevals[timevals > Tf/2.]
+dt_obtained = timevals[1:] - timevals[:-1]
+
+t1 = timevals[timevals <=Tf/2.]
+t2 = timevals[np.logical_and(timevals > Tf/2., timevals <= Tf)]
+
 stretchVals = np.hstack((
-    np.linspace(1., final_stretch, t1.shape[0]),
-    np.linspace(final_stretch - ldot * dt, 1., t2.shape[0])
+    np.linspace(1., final_stretch, int(len(t1))),
+    np.linspace(final_stretch - ldot * dt, 1., int(len(t2))),
 ))
 
 meshioPoints = mesh.p.T
